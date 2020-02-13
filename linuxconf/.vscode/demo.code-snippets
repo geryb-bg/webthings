@@ -1,0 +1,92 @@
+{
+  "Import all libraries": {
+    "scope": "cpp",
+    "prefix": "light_import",
+    "body": [
+        "#include <Arduino.h>",
+        "#include \"Thing.h\"",
+        "#include \"WebThingAdapter.h\"",
+        "#include <WiFi.h>",
+        "",
+        "#include \"config.h\""
+    ],
+    "description": "Import all libraries for sender device"
+  },
+  "Define pins and adapter": {
+      "scope": "cpp",
+      "prefix": "light_def",
+      "body": [
+        "const int ledPin = 15;",
+        "WebThingAdapter* adapter;"      
+      ],
+      "description": "Define light pin and adapter"
+  },
+  "Define web thing": {
+      "scope": "cpp",
+      "prefix": "light_thing",
+      "body": [
+        "const char* ledTypes[] = {\"OnOffSwitch\", \"Light\", nullptr};",
+        "ThingDevice led(\"led\", \"Warning light\", ledTypes);",
+        "ThingProperty ledOn(\"on\", \"\", BOOLEAN, \"OnOffProperty\");"
+      ],
+      "description": "Define web thing"
+  },
+  "Init setup": {
+      "scope": "cpp",
+      "prefix": "light_setup",
+      "body": [
+        "pinMode(ledPin, OUTPUT);",
+        "Serial.begin(115200);",
+        ""
+        "initWifi();",
+        "initAdapter();"
+      ]
+  },
+  "Connect to WiFi": {
+    "scope": "cpp",
+    "prefix": "light_wifi",
+    "body": [
+        "void initWifi() {",
+        "\tWiFi.begin(WIFI_SSID, WIFI_PASSWORD);",
+        "\twhile (WiFi.status() != WL_CONNECTED) {",
+        "\t\tSerial.println(\"Retry in 5 secs\");",
+        "\t\tWiFi.begin(WIFI_SSID, WIFI_PASSWORD);",
+        "\t\tdelay(5000);",
+        "\t}",
+        "\tSerial.println(\"Connected\");",
+        "}"
+    ],
+    "description": "Connect to WiFi"
+  },
+  "Initialise Web Thing Adapter": {
+      "scope": "cpp",
+      "prefix": "light_adapter",
+      "body": [
+        "void initAdapter() {",
+        "\tadapter = new WebThingAdapter(\"light\", WiFi.localIP());",
+        "\t",
+        "\tled.addProperty(&ledOn);",
+        "\tadapter->addDevice(&led);",
+        "\t",
+        "\tadapter->begin();",
+        "\t",
+        "\tSerial.println(\"HTTP server started\");",
+        "\tSerial.print(\"http://\");",
+        "\tSerial.print(WiFi.localIP());",
+        "\tSerial.print(\"/things/\");",
+        "\tSerial.print(led.id);",
+        "}"
+      ],
+      "description": "Initialise web thing adapter"
+  },
+  "Turn light on and off": {
+      "scope": "cpp",
+      "prefix": "light_on",
+      "body": [
+        "adapter->update();",
+        "bool on = ledOn.getValue().boolean;",
+        "digitalWrite(ledPin, on ? HIGH : LOW);"
+      ],
+      "description": "Turn light on and off"
+  }
+}
